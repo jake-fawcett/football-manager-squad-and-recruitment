@@ -2,7 +2,7 @@ import pandas as pd
 import argparse
 
 # Define Player attributes
-
+# TODO: Add roles.
 goalkeeper = {
     "role_name": "goalkeeper",
     "primary_multiplier": 5,
@@ -11,6 +11,16 @@ goalkeeper = {
     "secondary_attributes": ["1v1", "Ant", "Cmd", "Cnt", "Kic", "Pos"],
     "tertiary_multiplier": 1,
     "tertiary_attributes": ["Acc", "Aer", "Cmp", "Dec", "Fir", "Han", "Pas", "Thr", "Vis"]
+}
+
+fullback = {
+    "role_name": "fullback",
+    "primary_multiplier": 5,
+    "primary_attributes": ["Wor", "Acc", "Pac", "Sta"],
+    "secondary_multiplier": 3,
+    "secondary_attributes": ["Cro", "Dri", "Mar", "OtB", "Tck", "Tea"],
+    "tertiary_multiplier": 1,
+    "tertiary_attributes": ["Agi", "Ant", "Cnt", "Dec", "Fir", "Pas", "Pos", "Tec"]
 }
 
 def load_html_data_to_dataframe(filepath: str) -> pd.DataFrame:
@@ -98,20 +108,28 @@ def calc_role_scores(player_df: pd.DataFrame, role: dict) -> pd.DataFrame:
     player_df[f'{role["role_name"]}'] = round((((player_df[f'{role["role_name"]}_primary'] * 5) + (player_df[f'{role["role_name"]}_secondary'] * 3) + (player_df[f'{role["role_name"]}_tertiary'] * 1)) / divisor ), 2)
     return player_df
 
-def calc_player_scores(player_df: pd.DataFrame):
-    # TODO: Create objects for each role that can be used here.
-    player_df = calc_role_scores(player_df, goalkeeper)
-    # TODO: Add roles.
+def calc_role_scores_for_tactic_roles(player_df: pd.DataFrame, tactic_roles: [dict]):
+    for role in tactic_roles:
+        player_df = calc_role_scores(player_df, role)
     return player_df
 
 if __name__ == "__main__":
+    # Parse Input args
     parser = argparse.ArgumentParser()
-    parser.add_argument("-i", "--input-filepath", type=str)
-    parser.add_argument("-o", "--output-filepath", type=str)
+    parser.add_argument("-i", "--input-filepath", type=str, help="Path to Input Html file")
+    parser.add_argument("-o", "--output-filepath", type=str, help="Path to Export resultant Html file")
+    parser.add_argument("-r", "--roles", nargs='+', type=str, help="Space seperated list of roles for Evaluation")
     args = parser.parse_args()
     input_filepath = args.input_filepath
     output_filepath = args.output_filepath
+    roles = args.roles
 
+    # Take Role arg and convert to list of role dictionaries
+    tactic_roles = []
+    for role in roles:
+        tactic_roles.append(globals()[role])
+
+    # Inport data, calculate scores for role, export results as html
     player_df = load_html_data_to_dataframe(input_filepath)
-    player_df = calc_player_scores(player_df)
+    player_df = calc_role_scores_for_tactic_roles(player_df, tactic_roles)
     export_html_from_dataframe(player_df, output_filepath)
