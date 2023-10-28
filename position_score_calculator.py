@@ -1,7 +1,19 @@
 import pandas as pd
 import argparse
 
-def load_data(filepath: str) -> pd.DataFrame:
+# Define Player attributes
+
+goalkeeper = {
+    "role_name": "goalkeeper",
+    "primary_multiplier": 5,
+    "primary_attributes": ["Agi", "Ref"],
+    "secondary_multiplier": 3,
+    "secondary_attributes": ["1v1", "Ant", "Cmd", "Cnt", "Kic", "Pos"],
+    "tertiary_multiplier": 1,
+    "tertiary_attributes": ["Acc", "Aer", "Cmp", "Dec", "Fir", "Han", "Pas", "Thr", "Vis"]
+}
+
+def load_html_data_to_dataframe(filepath: str) -> pd.DataFrame:
     """Read HTML file exported by FM into a Dataframe
 
     Keyword arguments:
@@ -13,6 +25,37 @@ def load_data(filepath: str) -> pd.DataFrame:
     player_df = player_df.replace("-", 0)
     player_df = player_df.map(lambda x: str(x).split("-")[0])
     return player_df
+
+def export_html_from_dataframe(player_df: pd.DataFrame, filepath: str) -> str:
+    """Export Dataframe as html with jQuery Data Tables
+    Taken from: https://www.thepythoncode.com/article/convert-pandas-dataframe-to-html-table-python.
+
+    Keyword arguments:
+    filepath -- path to fm player html file
+    """
+    table_html = player_df.to_html(table_id="table", index=False)
+    html = f"""
+    <html>
+    <header>
+        <link href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet">
+    </header>
+    <body>
+    {table_html}
+    <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js" integrity="sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI=" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script>
+        $(document).ready( function () {{
+            $('#table').DataTable({{
+                paging: false,
+                order: [[12, 'desc']],
+                // scrollY: 400,
+            }});
+        }});
+    </script>
+    </body>
+    </html>
+    """
+    open(filepath, "w", encoding="utf-8").write(html)
 
 # TODO: Do I even want this?
 def calc_composite_scores(player_df: pd.DataFrame) -> pd.DataFrame:
@@ -38,38 +81,37 @@ def sum_attributes(player_df: pd.DataFrame, role: str, attribute_type: str, attr
     player_df[f'{role}_{attribute_type}'] = 0
     for attribute in attributes:
         player_df[f'{role}_{attribute_type}'] += pd.to_numeric(player_df[attribute])
+    player_df[f'{role}_{attribute_type}'] = round(player_df[f'{role}_{attribute_type}'] / len(attributes), 2)
     return player_df
 
-def calc_role_scores(player_df: pd.DataFrame, role: str, primary_attributes: [str], secondary_attributes: [str], tertiary_attributes: [str]) -> pd.DataFrame:
+def calc_role_scores(player_df: pd.DataFrame, role: dict) -> pd.DataFrame:
     """Calculate Player Role scores based on selected attributes.
 
     Keyword arguments:
     player_df: Dataframe of Players and Attributes
-    role: Name of role to be used as additional column in dataframe
-    primary_attributes: List of Most important attributes for a role
-    secondary_attributes: List of Most secondary attributes for a role
-    tertiary_attributes: List of Most tertiary attributes for a role
+    role: Dictionary containing role name, role attributes and role attribute weightings
     """
-    player_df = sum_attributes(player_df, role, "primary", primary_attributes)
-    player_df = sum_attributes(player_df, role, "secondary", secondary_attributes)
-    player_df = sum_attributes(player_df, role, "tertiary", tertiary_attributes)
-    divisor = (len(primary_attributes) * 5) + (len(secondary_attributes) * 3) + (len(tertiary_attributes) * 1)
-    player_df[f'{role}'] = (((player_df[f'{role}_primary'] * 5) + (player_df[f'{role}_secondary'] * 3) + (player_df[f'{role}_tertiary'] * 1)) / divisor )
+    player_df = sum_attributes(player_df, role["role_name"], "primary", role["primary_attributes"])
+    player_df = sum_attributes(player_df, role["role_name"], "secondary", role["secondary_attributes"])
+    player_df = sum_attributes(player_df, role["role_name"], "tertiary", role["tertiary_attributes"])
+    divisor = role["primary_multiplier"] + role["secondary_multiplier"] + role["tertiary_multiplier"]
+    player_df[f'{role["role_name"]}'] = round((((player_df[f'{role["role_name"]}_primary'] * 5) + (player_df[f'{role["role_name"]}_secondary'] * 3) + (player_df[f'{role["role_name"]}_tertiary'] * 1)) / divisor ), 2)
     return player_df
 
 def calc_player_scores(player_df: pd.DataFrame):
     # TODO: Create objects for each role that can be used here.
-    player_df = calc_role_scores(player_df, "goalkeeper", primary_attributes=["Agi", "Ref"], 
-        secondary_attributes=["1v1", "Ant", "Cmd", "Cnt", "Kic", "Pos"], 
-        tertiary_attributes=["Acc", "Aer", "Cmp", "Dec", "Fir", "Han", "Pas", "Thr", "Vis"])
+    player_df = calc_role_scores(player_df, goalkeeper)
     # TODO: Add roles.
-    print(player_df)
+    return player_df
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-f", "--filepath", type=str)
+    parser.add_argument("-i", "--input-filepath", type=str)
+    parser.add_argument("-o", "--output-filepath", type=str)
     args = parser.parse_args()
-    filepath = args.filepath
+    input_filepath = args.input_filepath
+    output_filepath = args.output_filepath
 
-    player_df = load_data(filepath)
-    calc_player_scores(player_df)
+    player_df = load_html_data_to_dataframe(input_filepath)
+    player_df = calc_player_scores(player_df)
+    export_html_from_dataframe(player_df, output_filepath)
