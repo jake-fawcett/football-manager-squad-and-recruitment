@@ -3,8 +3,8 @@ import argparse
 
 # Define Player attributes
 # TODO: Add roles.
-goalkeeper = {
-    "role_name": "goalkeeper",
+gk = {
+    "role_name": "gk",
     "primary_multiplier": 5,
     "primary_attributes": ["Agi", "Ref"],
     "secondary_multiplier": 3,
@@ -13,8 +13,8 @@ goalkeeper = {
     "tertiary_attributes": ["Acc", "Aer", "Cmp", "Dec", "Fir", "Han", "Pas", "Thr", "Vis"]
 }
 
-fullback = {
-    "role_name": "fullback",
+fb = {
+    "role_name": "fb",
     "primary_multiplier": 5,
     "primary_attributes": ["Wor", "Acc", "Pac", "Sta"],
     "secondary_multiplier": 3,
@@ -22,6 +22,54 @@ fullback = {
     "tertiary_multiplier": 1,
     "tertiary_attributes": ["Agi", "Ant", "Cnt", "Dec", "Fir", "Pas", "Pos", "Tec"]
 }
+
+cd = {
+    "role_name": "cd",
+    "primary_multiplier": 3,
+    "primary_attributes": ["Cmp", "Hea", "Jum", "Mar", "Pas", "Pos", "Str", "Tck", "Pac"],
+    "secondary_multiplier": 1,
+    "secondary_attributes": ["Agg", "Ant", "Bra", "Cnt", "Dec", "Fir", "Tec", "Vis"]
+}
+
+dm = {
+    "role_name": "dm",
+    "primary_multiplier": 5,
+    "primary_attributes": ["Wor", "Pac", "Sta", "Pas"],
+    "secondary_multiplier": 3,
+    "secondary_attributes": ["Tck", "Ant", "Cnt", "Pos", "Bal", "Agi"],
+    "tertiary_multiplier": 1,
+    "tertiary_attributes": ["Tea", "Fir", "Mar", "Agg", "Cmp", "Dec", "Str"]
+}
+
+b2b = {
+    "role_name": "b2b",
+    "primary_multiplier": 5,
+    "primary_attributes": ["Pas", "Wor", "Sta"],
+    "secondary_multiplier": 3,
+    "secondary_attributes": ["Tck", "OtB", "Tea", "Vis", "Str", "Dec", "Pos", "Pac"],
+    "tertiary_multiplier": 1,
+    "tertiary_attributes": ["Agg", "Ant", "Fin", "Lon", "Cmp", "Acc", "Bal", "Fir", "Dri", "Tec"]
+}
+
+w = {
+    "role_name": "w",
+    "primary_multiplier": 3,
+    "primary_attributes": ["Acc", "Cro", "Dri", "OtB", "Pac", "Tec"],
+    "secondary_multiplier": 1,
+    "secondary_attributes": ["Agi", "Fir", "Pas", "Sta", "Wor"],
+}
+
+iw = {
+    "role_name": "iw",
+    "primary_multiplier": 5,
+    "primary_attributes": ["Acc", "Pac", "Wor"],
+    "secondary_multiplier": 3,
+    "secondary_attributes": ["Dri", "Pas", "Tec", "OtB"],
+    "tertiary_multiplier": 1,
+    "tertiary_attributes": ["Cro", "Fir", "Cmp", "Dec", "Vis", "Agi", "Sta"]
+}
+
+
 
 def load_html_data_to_dataframe(filepath: str) -> pd.DataFrame:
     """Read HTML file exported by FM into a Dataframe
@@ -103,7 +151,9 @@ def calc_role_scores(player_df: pd.DataFrame, role: dict) -> pd.DataFrame:
     """
     player_df = sum_attributes(player_df, role["role_name"], "primary", role["primary_attributes"])
     player_df = sum_attributes(player_df, role["role_name"], "secondary", role["secondary_attributes"])
-    player_df = sum_attributes(player_df, role["role_name"], "tertiary", role["tertiary_attributes"])
+    if "tertiary_attributes" in role:
+        print("here")
+        player_df = sum_attributes(player_df, role["role_name"], "tertiary", role["tertiary_attributes"])
     divisor = role["primary_multiplier"] + role["secondary_multiplier"] + role["tertiary_multiplier"]
     player_df[f'{role["role_name"]}'] = round((((player_df[f'{role["role_name"]}_primary'] * 5) + (player_df[f'{role["role_name"]}_secondary'] * 3) + (player_df[f'{role["role_name"]}_tertiary'] * 1)) / divisor ), 2)
     return player_df

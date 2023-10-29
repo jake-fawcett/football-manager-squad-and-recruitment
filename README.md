@@ -5,5 +5,5 @@ Inspired by squirrel_plays_FOF's video [FM24 player recruitment using python](ht
 
 ## Usage
 ```
-python3 position_score_calculator.py --input-filepath "squad.html" --output-filepath "squad_output.html" --roles goalkeeper fullback
+python3 position_score_calculator.py --input-filepath "squad.html" --output-filepath "squad_output.html" --roles gk fb dm w iw
 ```
