@@ -1,0 +1,46 @@
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.4.0
+  hooks:
+  - id: check-added-large-files
+    args: [--maxkb=2500]
+  - id: check-ast
+  - id: check-case-conflict
+  - id: check-docstring-first
+  - id: check-json
+  - id: check-merge-conflict
+  - id: check-toml
+  - id: check-yaml
+  - id: end-of-file-fixer
+  - id: name-tests-test
+    args: [--pytest-test-first]
+  # - id: no-commit-to-branch
+  #   args: [--branch, main]
+- repo: https://github.com/pycqa/isort
+  rev: 5.12.0
+  hooks:
+  - id: isort
+    name: isort (python)
+    args: ["--profile", "black"]
+- repo: https://github.com/pre-commit/mirrors-yapf
+  rev: v0.32.0
+  hooks:
+  - id: yapf
+    additional_dependencies: [toml]
+    args: [--style "google" ]
+- repo: https://github.com/psf/black
+  rev: 23.1.0
+  hooks:
+    - id: black
+      args: [--line-length, '180']
+- repo: https://github.com/PyCQA/flake8
+  rev: 6.0.0
+  hooks:
+  - id: flake8
+    args: [--docstring-convention, google, --max-line-length, '180', --ignore, 'D100,D101,D102,D103,D104']
+    additional_dependencies: [flake8-bugbear, flake8-docstrings, pydocstyle==6.1.1]
+- repo: https://github.com/pycqa/bandit
+  rev: 1.7.4
+  hooks:
+  - id: bandit
+    args: [--skip, B608]
