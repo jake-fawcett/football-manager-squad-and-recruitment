@@ -77,6 +77,7 @@ def calc_role_scores(player_df: pd.DataFrame, attribute_df: pd.DataFrame) -> pd.
             except Exception as e:  # Used to Nat being used twice (Nationality and Natural Fitness)
                 print(e)
                 continue
+        player_df.loc[player_df[role] < 10, role] = 0
     return player_df
 
 
