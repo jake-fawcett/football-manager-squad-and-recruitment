@@ -19,7 +19,7 @@ def load_html_data_to_dataframe(filepath: str) -> pd.DataFrame:
     Keyword arguments:
     filepath -- path to fm player html file
     """
-    html = open(filepath,'r')
+    html = open(filepath, "r")
     df = pd.read_html(html, header=0, encoding="utf-8", keep_default_na=False)[0]
     # Clean Dataframe to get rid of unknown values and ability ranges (takes the lowest value)
     # This casts to a string to be able to split, so we have to cast back to an int later.
@@ -80,7 +80,8 @@ def calc_role_scores(player_df: pd.DataFrame, attribute_df: pd.DataFrame) -> pd.
                 continue
         # player_df.loc[player_df[role] < 10, role] = 0
         # player_df.loc[player_df[role].isnull(), role] = 0
-        player_df = player_df[player_df[role] > 10]
+        player_df = player_df[player_df[role] > 10] # used to remove all NaNs and incomplete reports
+    player_df["Max"] = player_df.iloc[:,-10:].max(axis=1)
     return player_df
 
 
