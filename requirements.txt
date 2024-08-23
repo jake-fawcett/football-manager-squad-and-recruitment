@@ -3,3 +3,5 @@ numpy
 lxml
 openpyxl
 pre-commit
+html5lib
+beautifulsoup4

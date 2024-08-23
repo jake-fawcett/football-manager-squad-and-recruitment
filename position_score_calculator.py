@@ -19,7 +19,8 @@ def load_html_data_to_dataframe(filepath: str) -> pd.DataFrame:
     Keyword arguments:
     filepath -- path to fm player html file
     """
-    df = pd.read_html(filepath, header=0, encoding="utf-8", keep_default_na=False)[0]
+    html = open(filepath,'r')
+    df = pd.read_html(html, header=0, encoding="utf-8", keep_default_na=False)[0]
     # Clean Dataframe to get rid of unknown values and ability ranges (takes the lowest value)
     # This casts to a string to be able to split, so we have to cast back to an int later.
     df = df.replace("-", 0)
@@ -77,7 +78,9 @@ def calc_role_scores(player_df: pd.DataFrame, attribute_df: pd.DataFrame) -> pd.
             except Exception as e:  # Used to Nat being used twice (Nationality and Natural Fitness)
                 print(e)
                 continue
-        player_df.loc[player_df[role] < 10, role] = 0
+        # player_df.loc[player_df[role] < 10, role] = 0
+        # player_df.loc[player_df[role].isnull(), role] = 0
+        player_df = player_df[player_df[role] > 10]
     return player_df
 
 
@@ -97,6 +100,6 @@ if __name__ == "__main__":
     player_df = load_html_data_to_dataframe(input_filepath)
     player_df = calc_role_scores(player_df, attribute_df)
     # trim attributes from final output
-    player_df = player_df.drop(player_df.columns[15:-11], axis=1)
+    player_df = player_df.drop(player_df.columns[13:-11], axis=1)
     # export results as html
     export_html_from_dataframe(player_df, output_filepath)
